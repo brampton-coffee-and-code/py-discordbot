@@ -4,9 +4,10 @@
 import logging
 
 import discord
-from config import admin_guild
 from discord import app_commands
 from discord.ext import commands
+
+from config import admin_guild
 
 log = logging.getLogger("discord")
 
@@ -14,17 +15,28 @@ log = logging.getLogger("discord")
 class TestCog(commands.Cog):
     """Various test commands."""
 
+    def __init__(self, bot: commands.Bot) -> None:
+        self.bot = bot
+
     # You can replace the await ctx.response.send_message("Test successful 👌") with your own stuff. (Replace the description in """ too.)
     @app_commands.command()
     @app_commands.guilds(discord.Object(id=admin_guild)) # Remove this line to make it a global command.
-    async def test(self, ctx: commands.Context) -> None:
+    async def test(self, interaction: discord.Interaction) -> None:
         """Test command."""
         try:
-            await ctx.response.send_message("Test successful 👌")
-            log.info(f"Test: Command {ctx.command.name} was executed successfully in {ctx.guild.name}.")
+            await interaction.response.send_message("Test successful 👌")
+            command = getattr(interaction, "command", None)
+            command_name = command.name if command else "test"
+            guild = interaction.guild
+            guild_name = guild.name if guild else "DM"
+            log.info(f"Test: Command {command_name} was executed successfully in {guild_name}.")
         except Exception:
-            await ctx.response.send_message("Command failed.", ephemeral=True)
-            log.error(f"Test: Command {ctx.command.name} was failed in {ctx.guild.name}.")
+            await interaction.response.send_message("Command failed.", ephemeral=True)
+            command = getattr(interaction, "command", None)
+            command_name = command.name if command else "test"
+            guild = interaction.guild
+            guild_name = guild.name if guild else "DM"
+            log.error(f"Test: Command {command_name} was failed in {guild_name}.")
 
 async def setup(bot) -> None:
     await bot.add_cog(TestCog(bot))
