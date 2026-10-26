@@ -19,15 +19,18 @@ class DiscordBot(commands.AutoShardedBot):
 
     def __init__(self) -> None:
         allowed_mentions = discord.AllowedMentions(roles=False, everyone=False, users=True)
-        intents = discord.Intents(
-            # Privileged intents
-           presences=True,
-           members=True,
-           message_content=True,
- 
-            # Non-privileged intents
-            guilds=True,
-        )
+        # use the default non-privileged intents and allow the config to opt-in to
+        # the three privileged intents separately.  This keeps the common case
+        # simple while still giving us explicit control over presences,
+        # members and message content.  The config file can define boolean
+        # flags such as ``intent_presences`` etc. (see config.py example below).
+
+        intents = discord.Intents.default()
+        # Privileged intents
+        intents.presences = True
+        intents.members = False
+        intents.message_content = False
+
         super().__init__(
             command_prefix="!",
             description=description,
@@ -36,7 +39,7 @@ class DiscordBot(commands.AutoShardedBot):
             allowed_mentions=allowed_mentions,
             intents=intents,
             enable_debug_events=False,
-            activity=discord.Activity(type=discord.ActivityType.listening, name="server fans"),
+            activity=discord.Activity(type=discord.ActivityType.listening, name="Responding to pings"),
         )
 
     async def setup_hook(self) -> None:
